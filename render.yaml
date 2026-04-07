@@ -20,14 +20,16 @@ services:
           property: connectionString
       - key: REDIS_URL
         fromService:
+          type: redis
           name: nivora-redis
           property: connectionString
 
   - type: redis
     name: nivora-redis
     plan: free
+    ipAllowList: []
 
 databases:
   - name: nivora-db
     plan: free
-    postgresqlVersion: 15
+    postgresSQLVersion: 15
