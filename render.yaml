@@ -11,24 +11,25 @@ services:
       - key: DJANGO_DEBUG
         value: "False"
       - key: DJANGO_SECRET_KEY
-        sync: false
+        generateValue: true
       - key: DJANGO_ALLOWED_HOSTS
-        sync: false
+        value: nivora-erp.onrender.com
       - key: DATABASE_URL
         fromDatabase:
           name: nivora-db
           property: connectionString
       - key: REDIS_URL
         fromService:
+          type: redis
           name: nivora-redis
           property: connectionString
-
-  - type: postgres
-    name: nivora-db
-    plan: free
-    postgresSQLVersion: 15
 
   - type: redis
     name: nivora-redis
     plan: free
     ipAllowList: []
+
+databases:
+  - name: nivora-db
+    plan: free
+    postgresSQLVersion: 15
