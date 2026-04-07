@@ -1,0 +1,7 @@
+<div class="empty-state">
+    <h3>{{ title }}</h3>
+    <p>{{ message }}</p>
+    {% if action_url and action_label %}
+        <a href="{{ action_url }}" class="btn-primary">{{ action_label }}</a>
+    {% endif %}
+</div>

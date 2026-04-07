@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}No Workspace · NIVORA{% endblock %}
+
+{% block content %}
+<section class="page-section narrow-section">
+    <div class="page-head">
+        <div>
+            <p class="eyebrow">Workspace access</p>
+            <h2>No active workspace</h2>
+            <p>NIVORA needs a workspace context before it can render operational data.</p>
+        </div>
+    </div>
+
+    <article class="panel">
+        {% if workspace_count %}
+            <h3>Workspace assignment is missing</h3>
+            <p class="muted">
+                {% if is_superuser_view %}
+                    A workspace exists, but this account was not attached to one yet. Refresh once the session is reassigned, or use the admin panel to manage memberships.
+                {% else %}
+                    Contact a workspace owner or admin to grant this account access.
+                {% endif %}
+            </p>
+            <div class="form-actions">
+                <a href="{% url 'dashboard:home' %}" class="btn-primary">Retry dashboard</a>
+                <a href="/admin/" class="btn-secondary">Open admin</a>
+            </div>
+        {% else %}
+            <h3>Create the first workspace</h3>
+            <p class="muted">
+                No workspaces exist yet. Use OTP signup to create one, or create it through Django admin.
+            </p>
+            <div class="form-actions">
+                <a href="{% url 'accounts:login' %}" class="btn-primary">Go to login</a>
+                <a href="/admin/" class="btn-secondary">Open admin</a>
+            </div>
+        {% endif %}
+    </article>
+</section>
+{% endblock %}

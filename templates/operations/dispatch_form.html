@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Dispatch {{ sales_order.code }} · NIVORA{% endblock %}
+
+{% block content %}
+<section class="page-section narrow-section">
+    <div class="page-head">
+        <div>
+            <p class="eyebrow">Dispatch</p>
+            <h2>Release {{ sales_order.code }}</h2>
+            <p>Deduct approved stock, generate shipment details, and issue the invoice in one action.</p>
+        </div>
+    </div>
+
+    <article class="panel">
+        <form method="post" class="stack-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Confirm dispatch</button>
+                <a href="{% url 'operations:sales_order_detail' sales_order.pk %}" class="btn-ghost">Cancel</a>
+            </div>
+        </form>
+    </article>
+</section>
+{% endblock %}

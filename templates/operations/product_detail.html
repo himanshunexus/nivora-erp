@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} · NIVORA{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="page-head">
+        <div>
+            <p class="eyebrow">Product detail</p>
+            <h2>{{ product.name }}</h2>
+            <p class="mono">{{ product.sku }} · {{ product.category }}</p>
+        </div>
+        <div class="head-actions">
+            <a href="{% url 'operations:product_edit' product.pk %}" class="btn-primary">Edit product</a>
+        </div>
+    </div>
+
+    <div class="metric-grid metric-grid-tight">
+        {% include 'components/metric_card.html' with label='On hand' value=product.stock_on_hand hint='Approved units in live stock' %}
+        {% include 'components/metric_card.html' with label='Reorder level' value=product.reorder_level hint='Threshold for operational attention' %}
+        {% include 'components/metric_card.html' with label='Cost price' value=product.cost_price hint='Latest accepted inbound cost' %}
+        {% include 'components/metric_card.html' with label='Unit price' value=product.unit_price hint='Outbound pricing for sales orders' %}
+    </div>
+
+    <div class="dashboard-grid">
+        <article class="panel">
+            <div class="panel-head">
+                <div>
+                    <p class="eyebrow">Inventory ledger</p>
+                    <h3>Recent movements</h3>
+                </div>
+            </div>
+            <div class="stack-list compact-list">
+                {% for movement in movements %}
+                    <div class="list-card">
+                        <div>
+                            <strong>{{ movement.get_movement_type_display }}</strong>
+                            <p class="muted">{{ movement.reference_code }} · {{ movement.notes|default:"No notes" }}</p>
+                        </div>
+                        <span class="mono">{{ movement.quantity }}</span>
+                    </div>
+                {% empty %}
+                    {% include 'components/empty_state.html' with title='No movements yet' message='Stock history will appear here after QC and dispatch events.' %}
+                {% endfor %}
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-head">
+                <div>
+                    <p class="eyebrow">Demand and supply</p>
+                    <h3>Linked orders</h3>
+                </div>
+            </div>
+            <div class="stack-list compact-list">
+                {% for line in recent_purchase_lines %}
+                    <div class="list-card">
+                        <div>
+                            <strong>{{ line.purchase_order.code }}</strong>
+                            <p class="muted">{{ line.purchase_order.supplier.name }}</p>
+                        </div>
+                        <span class="mono">{{ line.quantity_received }}/{{ line.quantity_ordered }}</span>
+                    </div>
+                {% empty %}
+                    <div class="muted">No linked purchase orders yet.</div>
+                {% endfor %}
+
+                {% for line in recent_sales_lines %}
+                    <div class="list-card">
+                        <div>
+                            <strong>{{ line.sales_order.code }}</strong>
+                            <p class="muted">{{ line.sales_order.customer.name }}</p>
+                        </div>
+                        <span class="mono">{{ line.quantity_ordered }}</span>
+                    </div>
+                {% empty %}
+                    <div class="muted">No linked sales orders yet.</div>
+                {% endfor %}
+            </div>
+        </article>
+    </div>
+</section>
+{% endblock %}

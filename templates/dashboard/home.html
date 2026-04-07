@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard · NIVORA{% endblock %}
+
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="page-head">
+        <div>
+            <p class="eyebrow">Command center</p>
+            <h2>Operational heartbeat</h2>
+            <p>Track procurement throughput, stock readiness, shipment velocity, and recent activity.</p>
+        </div>
+    </div>
+
+    <div class="metric-grid">
+        {% include 'components/metric_card.html' with label='Catalog SKUs' value=metrics.catalog_count hint='Active products in the workspace' %}
+        {% include 'components/metric_card.html' with label='Stock Units' value=metrics.stock_units hint='Approved units available to fulfill orders' %}
+        {% include 'components/metric_card.html' with label='Stock Value' value=metrics.stock_value hint='Based on the latest accepted cost price' %}
+        {% include 'components/metric_card.html' with label='Open POs' value=metrics.open_purchase_orders hint='Submitted or partially received orders' %}
+        {% include 'components/metric_card.html' with label='Ready Shipments' value=metrics.ready_shipments hint='Sales orders ready to leave the warehouse' %}
+        {% include 'components/metric_card.html' with label='Awaiting Stock' value=metrics.awaiting_stock hint='Customer demand blocked by inventory' %}
+    </div>
+
+    <div class="dashboard-grid">
+        <article class="panel">
+            <div class="panel-head">
+                <div>
+                    <p class="eyebrow">Trend lines</p>
+                    <h3>Order movement</h3>
+                </div>
+                <span class="panel-pill">7-day window</span>
+            </div>
+            <div class="chart-shell">
+                <canvas id="operationsChart" height="140"></canvas>
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-head">
+                <div>
+                    <p class="eyebrow">Attention</p>
+                    <h3>Low stock watch</h3>
+                </div>
+            </div>
+            {% if low_stock %}
+                <div class="stack-list">
+                    {% for item in low_stock %}
+                        <div class="list-card">
+                            <div>
+                                <strong>{{ item.name }}</strong>
+                                <p class="muted">{{ item.sku }}</p>
+                            </div>
+                            <span class="status-pill warning">Review</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                {% include 'components/empty_state.html' with title='No stock alerts' message='Approved inventory levels look healthy right now.' %}
+            {% endif %}
+        </article>
+    </div>
+
+    <article class="panel">
+        <div class="panel-head">
+            <div>
+                <p class="eyebrow">Activity feed</p>
+                <h3>Recent movement</h3>
+            </div>
+        </div>
+        {% if activity %}
+            <div class="activity-feed">
+                {% for entry in activity %}
+                    <a class="activity-row" href="{{ entry.link|default:'#' }}">
+                        <div class="activity-marker"></div>
+                        <div>
+                            <strong>{{ entry.message }}</strong>
+                            <p class="muted">
+                                {% if entry.actor %}{{ entry.actor.full_name|default:entry.actor.email }}{% else %}System{% endif %}
+                                · {{ entry.created_at|date:"M j, H:i" }}
+                            </p>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            {% include 'components/empty_state.html' with title='No activity yet' message='Your workflow events will start showing here as the workspace gets used.' %}
+        {% endif %}
+    </article>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const labels = {{ chart_labels|safe }};
+    const poSeries = {{ purchase_order_series|safe }};
+    const soSeries = {{ sales_order_series|safe }};
+
+    const canvas = document.getElementById('operationsChart');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        const purchaseGradient = ctx.createLinearGradient(0, 0, 0, 220);
+        purchaseGradient.addColorStop(0, 'rgba(79, 124, 255, 0.45)');
+        purchaseGradient.addColorStop(1, 'rgba(79, 124, 255, 0.03)');
+
+        const salesGradient = ctx.createLinearGradient(0, 0, 0, 220);
+        salesGradient.addColorStop(0, 'rgba(67, 229, 184, 0.35)');
+        salesGradient.addColorStop(1, 'rgba(67, 229, 184, 0.03)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Purchase Orders',
+                        data: poSeries,
+                        borderColor: '#4f7cff',
+                        backgroundColor: purchaseGradient,
+                        fill: true,
+                        tension: 0.35,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Sales Orders',
+                        data: soSeries,
+                        borderColor: '#43e5b8',
+                        backgroundColor: salesGradient,
+                        fill: true,
+                        tension: 0.35,
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#dfe5f0' }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#98a1b2' },
+                        grid: { color: 'rgba(152, 161, 178, 0.08)' }
+                    },
+                    y: {
+                        ticks: { color: '#98a1b2', precision: 0 },
+                        grid: { color: 'rgba(152, 161, 178, 0.08)' }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

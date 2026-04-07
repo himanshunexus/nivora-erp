@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Sales Orders · NIVORA{% endblock %}
+
+{% block content %}
+{% url 'operations:sales_order_create' as sales_order_create_url %}
+<section class="page-section">
+    <div class="page-head">
+        <div>
+            <p class="eyebrow">Fulfillment</p>
+            <h2>Sales orders</h2>
+            <p>Track stock-aware order intake and move ready demand into dispatch with tracking and invoices.</p>
+        </div>
+        <div class="head-actions">
+            <form method="get" class="inline-search">
+                <select name="status">
+                    <option value="">All statuses</option>
+                    <option value="awaiting_stock" {% if status_filter == 'awaiting_stock' %}selected{% endif %}>Awaiting stock</option>
+                    <option value="ready_for_dispatch" {% if status_filter == 'ready_for_dispatch' %}selected{% endif %}>Ready for dispatch</option>
+                    <option value="dispatched" {% if status_filter == 'dispatched' %}selected{% endif %}>Dispatched</option>
+                </select>
+                <button type="submit" class="btn-secondary">Filter</button>
+            </form>
+            <a href="{% url 'operations:sales_order_create' %}" class="btn-primary">New sales order</a>
+        </div>
+    </div>
+
+    <article class="panel table-panel">
+        {% if page_obj %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Customer</th>
+                        <th>Status</th>
+                        <th>Promised</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sales_order in page_obj %}
+                        <tr onclick="window.location='{% url 'operations:sales_order_detail' sales_order.pk %}'">
+                            <td class="mono">{{ sales_order.code }}</td>
+                            <td>{{ sales_order.customer.name }}</td>
+                            <td>{% include 'components/status_badge.html' with status=sales_order.status label=sales_order.get_status_display %}</td>
+                            <td>{{ sales_order.promised_on|date:"M j, Y" }}</td>
+                            <td class="mono">{{ sales_order.total_amount }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            {% include 'components/empty_state.html' with title='No sales orders yet' message='Create a demand document to drive allocation, dispatch, and invoicing.' action_url=sales_order_create_url action_label='Create sales order' %}
+        {% endif %}
+    </article>
+</section>
+{% endblock %}

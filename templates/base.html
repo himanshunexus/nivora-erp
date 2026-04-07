@@ -1,0 +1,113 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{{ platform_name }}{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            400: '#94a3b8',
+                            600: '#64748b',
+                            700: '#475569',
+                            900: '#1e293b',
+                        },
+                        green: {
+                            500: '#10b981',
+                            600: '#059669',
+                            100: 'rgba(16, 185, 129, 0.1)',
+                        },
+                        emerald: {
+                            600: '#059669',
+                        },
+                        nivora: {
+                            bg: '#f8fafc',
+                            surface: '#ffffff',
+                            accent: '#10b981',
+                        }
+                    },
+                    fontFamily: {
+                        display: ['Montserrat', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        };
+    </script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="{% static 'css/nivora.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body
+    class="font-body"
+    data-notification-poll-url="{% if user.is_authenticated %}{% url 'notifications:poll' %}{% endif %}"
+    data-command-url="{% if user.is_authenticated %}{% url 'search:command' %}{% endif %}"
+    data-poll-interval="{{ notification_poll_interval_ms }}"
+>
+    <div class="ambient-grid"></div>
+    {% if user.is_authenticated %}
+        <div class="shell">
+            {% include 'components/sidebar.html' %}
+            <main class="shell-main">
+                {% include 'components/navbar.html' %}
+                <section class="content-shell">
+    {% else %}
+        <main class="auth-shell">
+    {% endif %}
+    {% block content %}{% endblock %}
+    {% if user.is_authenticated %}
+                </section>
+            </main>
+        </div>
+    {% else %}
+        </main>
+    {% endif %}
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Telemetry Indicator -->
+    <div class="telemetry-indicator">
+        <span class="telemetry-dot"></span>
+        <span>Cloud Connected</span>
+    </div>
+
+    <div id="command-palette" class="command-palette hidden" aria-hidden="true">
+        <div class="command-backdrop" data-command-close></div>
+        <div class="command-dialog">
+            <div class="command-input-row">
+                <span class="command-kbd">K</span>
+                <input
+                    id="command-input"
+                    type="text"
+                    placeholder="Search products, orders, suppliers, customers..."
+                    autocomplete="off"
+                >
+            </div>
+            <div id="command-results" class="command-results"></div>
+        </div>
+    </div>
+
+    <div id="modal-root"></div>
+
+    <div id="server-messages" class="hidden">
+        {% for message in messages %}
+            <div data-message="{{ message|escape }}" data-level="{{ message.tags|default:'info' }}"></div>
+        {% endfor %}
+    </div>
+
+    <script src="{% static 'js/nivora.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

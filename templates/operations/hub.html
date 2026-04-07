@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Workspace · NIVORA{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="page-head">
+        <div>
+            <p class="eyebrow">Operations module</p>
+            <h2>Supply chain workspace</h2>
+            <p>Seed suppliers and customers, then move work from purchase order to receipt, QC, dispatch, and invoice.</p>
+        </div>
+        <div class="head-actions">
+            <a href="{% url 'operations:purchase_order_create' %}" class="btn-primary">New purchase order</a>
+            <a href="{% url 'operations:sales_order_create' %}" class="btn-secondary">New sales order</a>
+        </div>
+    </div>
+
+    <div class="metric-grid metric-grid-tight">
+        {% include 'components/metric_card.html' with label='Pending QC' value=pending_quality_count hint='Lots waiting for inspection' %}
+        {% include 'components/metric_card.html' with label='Unread alerts' value=unread_count hint='Notifications scoped to your role' %}
+    </div>
+
+    <div class="two-up-grid">
+        <article class="panel">
+            <div class="panel-head">
+                <div>
+                    <p class="eyebrow">Suppliers</p>
+                    <h3>Build the intake network</h3>
+                </div>
+            </div>
+            <form action="{% url 'operations:supplier_create' %}" method="post" class="stack-form compact-form">
+                {% csrf_token %}
+                {{ supplier_form.as_p }}
+                <button type="submit" class="btn-primary">Add supplier</button>
+            </form>
+            <div class="stack-list compact-list">
+                {% for supplier in suppliers %}
+                    <div class="list-card">
+                        <div>
+                            <strong>{{ supplier.name }}</strong>
+                            <p class="muted">{{ supplier.email|default:supplier.phone }}</p>
+                        </div>
+                        {% include 'components/status_badge.html' with status=supplier.status label=supplier.get_status_display %}
+                    </div>
+                {% empty %}
+                    {% include 'components/empty_state.html' with title='No suppliers yet' message='Add vendors so the procurement workflow can start.' %}
+                {% endfor %}
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel-head">
+                <div>
+                    <p class="eyebrow">Customers</p>
+                    <h3>Build the outbound book</h3>
+                </div>
+            </div>
+            <form action="{% url 'operations:customer_create' %}" method="post" class="stack-form compact-form">
+                {% csrf_token %}
+                {{ customer_form.as_p }}
+                <button type="submit" class="btn-primary">Add customer</button>
+            </form>
+            <div class="stack-list compact-list">
+                {% for customer in customers %}
+                    <div class="list-card">
+                        <div>
+                            <strong>{{ customer.name }}</strong>
+                            <p class="muted">{{ customer.company|default:customer.email }}</p>
+                        </div>
+                        <span class="status-pill neutral">Account</span>
+                    </div>
+                {% empty %}
+                    {% include 'components/empty_state.html' with title='No customers yet' message='Add customers to unlock sales order dispatch and invoicing.' %}
+                {% endfor %}
+            </div>
+        </article>
+    </div>
+
+    <article class="panel">
+        <div class="panel-head">
+            <div>
+                <p class="eyebrow">Workflow map</p>
+                <h3>How data moves</h3>
+            </div>
+        </div>
+        <div class="workflow-rail">
+            <div class="workflow-step">Supplier onboarding</div>
+            <div class="workflow-step">Purchase order</div>
+            <div class="workflow-step">Goods receipt</div>
+            <div class="workflow-step">Quality inspection</div>
+            <div class="workflow-step">Live stock</div>
+            <div class="workflow-step">Sales order</div>
+            <div class="workflow-step">Dispatch + invoice</div>
+        </div>
+    </article>
+</section>
+{% endblock %}

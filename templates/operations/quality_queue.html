@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Quality Queue · NIVORA{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="page-head">
+        <div>
+            <p class="eyebrow">QC gate</p>
+            <h2>Quality queue</h2>
+            <p>Review inbound lots before they become available to sales and dispatch teams.</p>
+        </div>
+    </div>
+
+    <article class="panel table-panel">
+        {% if page_obj %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Lot</th>
+                        <th>Product</th>
+                        <th>Receipt</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inspection in page_obj %}
+                        <tr>
+                            <td class="mono">{{ inspection.inventory_lot.lot_code }}</td>
+                            <td>{{ inspection.inventory_lot.product.name }}</td>
+                            <td class="mono">{{ inspection.inventory_lot.goods_receipt_line.goods_receipt.code }}</td>
+                            <td>{% include 'components/status_badge.html' with status=inspection.status label=inspection.get_status_display %}</td>
+                            <td><a href="{% url 'operations:quality_detail' inspection.pk %}" class="btn-secondary">Open</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            {% include 'components/empty_state.html' with title='No inspections queued' message='Receipts will appear here as soon as warehouse intake is recorded.' %}
+        {% endif %}
+    </article>
+</section>
+{% endblock %}

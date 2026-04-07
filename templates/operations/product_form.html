@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} · NIVORA{% endblock %}
+
+{% block content %}
+<section class="page-section narrow-section">
+    <div class="page-head">
+        <div>
+            <p class="eyebrow">Catalog editor</p>
+            <h2>{{ title }}</h2>
+            <p>Define pricing, reorder thresholds, and QC requirements once so the whole workflow stays consistent.</p>
+        </div>
+    </div>
+
+    <article class="panel">
+        <form method="post" class="stack-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Save product</button>
+                <a href="{% url 'operations:product_list' %}" class="btn-ghost">Cancel</a>
+            </div>
+        </form>
+    </article>
+</section>
+{% endblock %}

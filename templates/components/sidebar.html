@@ -1,0 +1,37 @@
+<aside class="shell-sidebar">
+    <a href="{% url 'dashboard:home' %}" class="brand-lockup">
+        <span class="brand-mark">N</span>
+        <span>
+            <strong class="brand-word">NIVORA</strong>
+            <small>{{ workspace.name|default:"Workspace" }}</small>
+        </span>
+    </a>
+
+    <nav class="sidebar-nav">
+        <a href="{% url 'dashboard:home' %}" class="nav-link {% if request.resolver_match.namespace == 'dashboard' %}active{% endif %}">
+            <span>Dashboard</span>
+        </a>
+        <a href="{% url 'operations:hub' %}" class="nav-link {% if request.resolver_match.namespace == 'operations' and request.resolver_match.url_name == 'hub' %}active{% endif %}">
+            <span>Workspace</span>
+        </a>
+        <a href="{% url 'operations:product_list' %}" class="nav-link {% if request.resolver_match.url_name == 'product_list' or request.resolver_match.url_name == 'product_detail' or request.resolver_match.url_name == 'product_create' or request.resolver_match.url_name == 'product_edit' %}active{% endif %}">
+            <span>Products</span>
+        </a>
+        <a href="{% url 'operations:purchase_order_list' %}" class="nav-link {% if request.resolver_match.url_name == 'purchase_order_list' or request.resolver_match.url_name == 'purchase_order_detail' or request.resolver_match.url_name == 'purchase_order_create' or request.resolver_match.url_name == 'purchase_order_receive' %}active{% endif %}">
+            <span>Procurement</span>
+        </a>
+        <a href="{% url 'operations:quality_queue' %}" class="nav-link {% if request.resolver_match.url_name == 'quality_queue' or request.resolver_match.url_name == 'quality_detail' %}active{% endif %}">
+            <span>Quality</span>
+        </a>
+        <a href="{% url 'operations:sales_order_list' %}" class="nav-link {% if request.resolver_match.url_name == 'sales_order_list' or request.resolver_match.url_name == 'sales_order_detail' or request.resolver_match.url_name == 'sales_order_create' or request.resolver_match.url_name == 'sales_order_dispatch' %}active{% endif %}">
+            <span>Orders</span>
+        </a>
+        <a href="{% url 'notifications:center' %}" class="nav-link {% if request.resolver_match.namespace == 'notifications' %}active{% endif %}">
+            <span>Notifications</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-foot">
+        <p class="sidebar-caption">Built for procurement, inventory, and fulfillment teams.</p>
+    </div>
+</aside>

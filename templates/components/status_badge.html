@@ -1,0 +1,9 @@
+{% if status == 'ready_for_dispatch' or status == 'approved' or status == 'received' or status == 'completed' or status == 'success' %}
+    <span class="status-pill success">{{ label|default:status|title }}</span>
+{% elif status == 'awaiting_stock' or status == 'pending' or status == 'pending_qc' or status == 'submitted' or status == 'partial' or status == 'warning' %}
+    <span class="status-pill warning">{{ label|default:status|title }}</span>
+{% elif status == 'rejected' or status == 'cancelled' or status == 'error' %}
+    <span class="status-pill danger">{{ label|default:status|title }}</span>
+{% else %}
+    <span class="status-pill neutral">{{ label|default:status|title }}</span>
+{% endif %}

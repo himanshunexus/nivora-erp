@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ inspection.inventory_lot.lot_code }} · NIVORA{% endblock %}
+
+{% block content %}
+<section class="page-section narrow-section">
+    <div class="page-head">
+        <div>
+            <p class="eyebrow">Inspection</p>
+            <h2>{{ inspection.inventory_lot.lot_code }}</h2>
+            <p>{{ inspection.inventory_lot.product.name }} · received {{ inspection.inventory_lot.quantity_received }} units</p>
+        </div>
+    </div>
+
+    <div class="metric-grid metric-grid-tight">
+        {% include 'components/metric_card.html' with label='Receipt' value=inspection.inventory_lot.goods_receipt_line.goods_receipt.code hint='Source inbound document' %}
+        {% include 'components/metric_card.html' with label='Purchase order' value=inspection.inventory_lot.goods_receipt_line.goods_receipt.purchase_order.code hint='Parent procurement request' %}
+    </div>
+
+    <article class="panel">
+        <form method="post" class="stack-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Submit decision</button>
+                <a href="{% url 'operations:quality_queue' %}" class="btn-ghost">Back to queue</a>
+            </div>
+        </form>
+    </article>
+</section>
+{% endblock %}

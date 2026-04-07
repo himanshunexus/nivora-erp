@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In | {{ platform_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center p-4 bg-slate-50">
+    <div class="w-full max-w-md bg-white border border-slate-200 p-8 rounded-lg shadow-md">
+
+        <div class="text-center mb-8">
+            <h1 class="font-display text-3xl font-semibold text-slate-800 mb-2">Welcome Back</h1>
+            <p class="text-slate-500 text-sm">Enter your credentials to access your workspace</p>
+        </div>
+
+        <form method="post" action="{% url 'accounts:login' %}" class="space-y-5">
+            {% csrf_token %}
+
+            <div class="space-y-4">
+                {% for field in form %}
+                <div class="flex flex-col gap-2">
+                    <label for="{{ field.id_for_label }}"
+                        class="text-xs font-semibold uppercase tracking-wider text-slate-600">
+                        {{ field.label }}
+                    </label>
+                    <div class="relative">
+                        <div class="django-field-wrapper">
+                            {{ field }}
+                        </div>
+                    </div>
+                    {% if field.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <button type="submit"
+                class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-md shadow-sm transition-all active:scale-[0.98] mt-6">
+                Sign In
+            </button>
+        </form>
+
+        <div class="mt-8 text-center border-t border-slate-200 pt-6 space-y-4">
+            <p class="text-slate-600 text-sm">
+                Don't have an account?
+                <a href="{% url 'accounts:register' %}"
+                    class="text-green-500 hover:text-green-600 font-semibold transition-colors underline underline-offset-4">
+                    Create Account
+                </a>
+            </p>
+            <p class="text-slate-500 text-xs">
+                Trouble logging in? <a href="#" class="text-green-500 hover:underline font-semibold">Contact Support</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Light theme inputs - improved clarity */
+    .django-field-wrapper input {
+        width: 100%;
+        background-color: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.375rem;
+        padding: 0.625rem 0.875rem;
+        color: #1e293b;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+
+    .django-field-wrapper input::placeholder {
+        color: #94a3b8;
+    }
+
+    .django-field-wrapper input:focus {
+        outline: none;
+        border-color: #10b981;
+        background-color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .django-field-wrapper p {
+        margin: 0;
+    }
+</style>
+{% endblock %}

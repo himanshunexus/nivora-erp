@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Receive {{ purchase_order.code }} · NIVORA{% endblock %}
+
+{% block content %}
+{% now "Y-m-d" as today_iso %}
+<section class="page-section narrow-section">
+    <div class="page-head">
+        <div>
+            <p class="eyebrow">Goods receipt</p>
+            <h2>Receive {{ purchase_order.code }}</h2>
+            <p>Capture landed quantities. Approved stock will remain blocked until QC is completed.</p>
+        </div>
+    </div>
+
+    <form method="post" class="stack-form">
+        {% csrf_token %}
+        <article class="panel">
+            <div class="inline-form-grid">
+                <label>
+                    <span>Received on</span>
+                    <input type="date" name="received_on" value="{{ today_iso }}">
+                </label>
+                <label>
+                    <span>Reference number</span>
+                    <input type="text" name="reference_number" placeholder="GRN-ACME-001">
+                </label>
+            </div>
+        </article>
+
+        <article class="panel table-panel">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Open qty</th>
+                        <th>Receive now</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in receipt_rows %}
+                        <tr>
+                            <td>{{ row.line.product.name }}</td>
+                            <td class="mono">{{ row.remaining }}</td>
+                            <td>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="{{ row.remaining }}"
+                                    name="received_{{ row.line.pk }}"
+                                    value="0"
+                                >
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </article>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">Record receipt</button>
+            <a href="{% url 'operations:purchase_order_detail' purchase_order.pk %}" class="btn-ghost">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

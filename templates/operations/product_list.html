@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Products · NIVORA{% endblock %}
+
+{% block content %}
+{% url 'operations:product_create' as product_create_url %}
+<section class="page-section">
+    <div class="page-head">
+        <div>
+            <p class="eyebrow">Catalog</p>
+            <h2>Products</h2>
+            <p>Maintain the SKU catalog that powers procurement, quality gates, and customer fulfillment.</p>
+        </div>
+        <div class="head-actions">
+            <form method="get" class="inline-search">
+                <input type="search" name="q" value="{{ query }}" placeholder="Search SKU or product">
+                <button class="btn-secondary" type="submit">Filter</button>
+            </form>
+            <a href="{% url 'operations:product_create' %}" class="btn-primary">New product</a>
+        </div>
+    </div>
+
+    <article class="panel table-panel">
+        {% if page_obj %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Stock</th>
+                        <th>Unit price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in page_obj %}
+                        <tr onclick="window.location='{% url 'operations:product_detail' product.pk %}'">
+                            <td class="mono">{{ product.sku }}</td>
+                            <td>
+                                <strong>{{ product.name }}</strong>
+                                <div class="muted">{{ product.unit }}</div>
+                            </td>
+                            <td>{{ product.category }}</td>
+                            <td>
+                                <span class="mono">{{ product.stock_on_hand }}</span>
+                                {% if product.stock_on_hand <= product.reorder_level %}
+                                    {% include 'components/status_badge.html' with status='warning' label='Reorder' %}
+                                {% endif %}
+                            </td>
+                            <td class="mono">{{ product.unit_price }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            {% include 'components/empty_state.html' with title='No products yet' message='Create a SKU to unlock procurement and fulfillment flows.' action_url=product_create_url action_label='Create product' %}
+        {% endif %}
+    </article>
+</section>
+{% endblock %}

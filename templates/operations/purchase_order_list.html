@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Purchase Orders · NIVORA{% endblock %}
+
+{% block content %}
+{% url 'operations:purchase_order_create' as purchase_order_create_url %}
+<section class="page-section">
+    <div class="page-head">
+        <div>
+            <p class="eyebrow">Procurement</p>
+            <h2>Purchase orders</h2>
+            <p>Track submitted orders, receipt progress, and warehouse intake before QC release.</p>
+        </div>
+        <div class="head-actions">
+            <form method="get" class="inline-search">
+                <select name="status">
+                    <option value="">All statuses</option>
+                    <option value="submitted" {% if status_filter == 'submitted' %}selected{% endif %}>Submitted</option>
+                    <option value="partially_received" {% if status_filter == 'partially_received' %}selected{% endif %}>Partially received</option>
+                    <option value="received" {% if status_filter == 'received' %}selected{% endif %}>Received</option>
+                </select>
+                <button type="submit" class="btn-secondary">Filter</button>
+            </form>
+            <a href="{% url 'operations:purchase_order_create' %}" class="btn-primary">New PO</a>
+        </div>
+    </div>
+
+    <article class="panel table-panel">
+        {% if page_obj %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Supplier</th>
+                        <th>Status</th>
+                        <th>Expected</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for purchase_order in page_obj %}
+                        <tr onclick="window.location='{% url 'operations:purchase_order_detail' purchase_order.pk %}'">
+                            <td class="mono">{{ purchase_order.code }}</td>
+                            <td>{{ purchase_order.supplier.name }}</td>
+                            <td>{% include 'components/status_badge.html' with status=purchase_order.status label=purchase_order.get_status_display %}</td>
+                            <td>{{ purchase_order.expected_on|date:"M j, Y" }}</td>
+                            <td class="mono">{{ purchase_order.total_amount }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            {% include 'components/empty_state.html' with title='No purchase orders yet' message='Open your first purchase order to start the inbound workflow.' action_url=purchase_order_create_url action_label='Create purchase order' %}
+        {% endif %}
+    </article>
+</section>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications · NIVORA{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="page-head">
+        <div>
+            <p class="eyebrow">Signal stream</p>
+            <h2>Notifications</h2>
+            <p>Stay ahead of receipts, inspections, dispatches, and workflow events that need attention.</p>
+        </div>
+    </div>
+
+    <article class="panel">
+        {% if page_obj %}
+            <div class="stack-list">
+                {% for notification in page_obj %}
+                    <div class="list-card">
+                        <div class="grow">
+                            <div class="inline-flex items-center gap-3">
+                                {% include 'components/status_badge.html' with status=notification.level label=notification.get_level_display %}
+                                <strong>{{ notification.title }}</strong>
+                            </div>
+                            <p class="muted">{{ notification.message }}</p>
+                            <p class="tiny muted">{{ notification.created_at|date:"M j, Y · H:i" }}</p>
+                        </div>
+                        {% if not notification.is_read %}
+                            <form action="{% url 'notifications:mark_read' notification.pk %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{% url 'notifications:center' %}">
+                                <button class="btn-secondary" type="submit">Mark read</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            {% include 'components/empty_state.html' with title='Inbox is clear' message='New workflow signals will appear here.' %}
+        {% endif %}
+    </article>
+</section>
+{% endblock %}

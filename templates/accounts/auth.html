@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ auth_copy.title }} · NIVORA{% endblock %}
+
+{% block content %}
+<section class="min-h-screen grid lg:grid-cols-2 bg-nivora-bg">
+    <div
+        class="hidden lg:flex flex-col justify-between p-12 bg-nivora-panel/30 border-r border-white/5 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-nivora-accent/10 to-transparent pointer-events-none"></div>
+
+        <div class="relative z-10">
+            <a href="{% url 'accounts:login' %}" class="flex items-center gap-3 group">
+                <span
+                    class="w-10 h-10 flex items-center justify-center bg-nivora-accent text-white font-display font-bold rounded-lg group-hover:shadow-[0_0_20px_rgba(79,124,255,0.4)] transition-all">N</span>
+                <div class="flex flex-col">
+                    <strong class="font-display text-xl tracking-tighter text-white">NIVORA</strong>
+                    <small class="text-[10px] uppercase tracking-[0.2em] text-nivora-steel">{{ auth_copy.accent_label
+                        }}</small>
+                </div>
+            </a>
+        </div>
+
+        <div class="relative z-10 max-w-md">
+            <span
+                class="inline-block py-1 px-3 rounded-full bg-white/5 border border-white/10 text-nivora-accent text-xs font-bold uppercase tracking-widest mb-6">
+                Workspace access
+            </span>
+            <h1 class="font-display text-5xl font-bold text-white mb-6 leading-tight italic">{{ auth_copy.headline }}
+            </h1>
+            <p class="text-nivora-steel text-lg leading-relaxed">{{ auth_copy.subheadline }}</p>
+
+            <div class="grid grid-cols-1 gap-6 mt-12">
+                <div class="flex gap-4 items-start">
+                    <div class="w-1 bg-nivora-accent h-12 rounded-full"></div>
+                    <div>
+                        <strong class="text-white block mb-1">OTP-First Security</strong>
+                        <p class="text-sm text-nivora-steel/80">Short-lived codes with JWT session management.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-start">
+                    <div class="w-1 bg-white/20 h-12 rounded-full"></div>
+                    <div>
+                        <strong class="text-white block mb-1">Workspace-Scoped</strong>
+                        <p class="text-sm text-nivora-steel/80">Resolves into one active operator context.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="relative z-10 flex gap-8">
+            <div class="flex items-center gap-3">
+                <span
+                    class="w-8 h-8 rounded-full border border-nivora-accent text-nivora-accent flex items-center justify-center text-xs font-bold">01</span>
+                <span class="text-white font-medium">Identify</span>
+            </div>
+            <div class="flex items-center gap-3 {% if not show_verify %}opacity-30{% endif %}">
+                <span
+                    class="w-8 h-8 rounded-full border border-white/20 text-white flex items-center justify-center text-xs font-bold">02</span>
+                <span class="text-white font-medium">Verify</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-col items-center justify-center p-6 lg:p-20 relative">
+        <div class="absolute top-8 right-8 flex bg-nivora-panel border border-white/10 rounded-lg p-1">
+            <a href="{% url 'accounts:login' %}"
+                class="px-4 py-1.5 rounded-md text-xs font-bold transition-all {% if auth_mode == 'login' %}bg-nivora-accent text-white shadow-lg{% else %}text-nivora-steel hover:text-white{% endif %}">LOGIN</a>
+            <a href="{% url 'accounts:register' %}"
+                class="px-4 py-1.5 rounded-md text-xs font-bold transition-all {% if auth_mode == 'register' %}bg-nivora-accent text-white shadow-lg{% else %}text-nivora-steel hover:text-white{% endif %}">REGISTER</a>
+        </div>
+
+        <div class="w-full max-w-md space-y-8">
+            <article
+                class="bg-nivora-panel/50 border {% if not show_verify %}border-nivora-accent/40 shadow-[0_0_40px_rgba(79,124,255,0.1)]{% else %}border-white/5 opacity-60{% endif %} p-8 rounded-2xl transition-all">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">{{ auth_copy.request_title }}</h2>
+                        <p class="text-sm text-nivora-steel mt-1">{{ auth_copy.request_copy }}</p>
+                    </div>
+                    <span class="text-[10px] font-bold bg-nivora-accent/20 text-nivora-accent px-2 py-1 rounded">STEP
+                        1</span>
+                </div>
+
+                <form action="{% url 'accounts:request_otp' %}" method="post" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="flow" value="{{ auth_mode }}">
+
+                    <div class="django-field-group">
+                        {{ request_form.email }}
+                        {% if auth_mode == 'register' %}
+                        {{ request_form.full_name }}
+                        {{ request_form.workspace_name }}
+                        {{ request_form.phone_number }}
+                        {% endif %}
+                    </div>
+
+                    <button type="submit"
+                        class="w-full py-3 bg-white text-nivora-bg font-bold rounded-lg hover:bg-nivora-accent hover:text-white transition-all transform active:scale-95">
+                        {{ auth_copy.request_button }}
+                    </button>
+                </form>
+            </article>
+
+            {% if show_verify %}
+            <article
+                class="bg-nivora-panel border border-nivora-accent shadow-[0_0_50px_rgba(79,124,255,0.15)] p-8 rounded-2xl animate-in fade-in zoom-in duration-500">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">{{ auth_copy.verify_title }}</h2>
+                        <p class="text-sm text-nivora-steel mt-1">Check <span class="text-nivora-accent font-mono">{{
+                                prefill_email }}</span></p>
+                    </div>
+                    <span class="text-[10px] font-bold bg-nivora-accent text-white px-2 py-1 rounded">ACTIVE</span>
+                </div>
+
+                <form action="{% url 'accounts:verify_otp' %}" method="post" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="flow" value="{{ auth_mode }}">
+                    <div class="hidden">{{ verify_form.email }}</div>
+                    <div class="verify-field">
+                        {{ verify_form.code }}
+                    </div>
+
+                    <button type="submit"
+                        class="w-full py-3 bg-nivora-accent text-white font-bold rounded-lg shadow-lg shadow-nivora-accent/20 hover:opacity-90 transition-all">
+                        {{ auth_copy.verify_button }}
+                    </button>
+                </form>
+
+                {% if debug_code %}
+                <div class="mt-4 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded text-center">
+                    <p class="text-[10px] text-yellow-500 font-mono uppercase tracking-tighter">Debug Mode: {{
+                        debug_code }}</p>
+                </div>
+                {% endif %}
+            </article>
+            {% else %}
+            <article class="border border-dashed border-white/10 p-8 rounded-2xl opacity-40 grayscale">
+                <div class="text-center py-4">
+                    <div class="text-xs font-mono text-nivora-steel uppercase tracking-widest">Verification Locked</div>
+                    <p class="text-sm text-nivora-steel mt-2 italic">Complete Step 1 to unlock code entry</p>
+                </div>
+            </article>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<style>
+    /* Targeting Django Form Widgets */
+    .django-field-group input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        color: white;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+    }
+
+    .django-field-group input:focus {
+        outline: none;
+        border-color: #4f7cff;
+        background: rgba(255, 255, 255, 0.07);
+    }
+
+    /* Code Input Styling */
+    .verify-field input {
+        width: 100%;
+        background: #0f1117;
+        border: 2px solid #4f7cff;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        color: white;
+        text-align: center;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 1.5rem;
+        letter-spacing: 0.5rem;
+    }
+</style>
+{% endblock %}

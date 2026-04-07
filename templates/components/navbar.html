@@ -1,0 +1,19 @@
+<header class="topbar">
+    <div>
+        <p class="eyebrow">Operations workspace</p>
+        <h1 class="topbar-title">{{ workspace.name|default:"NIVORA" }}</h1>
+    </div>
+    <div class="topbar-actions">
+        <button type="button" class="btn-secondary" data-command-open>
+            Search
+        </button>
+        <a href="{% url 'notifications:center' %}" class="notification-chip">
+            Notifications
+            <span id="notification-count" class="notification-count"></span>
+        </a>
+        <form action="{% url 'accounts:logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn-ghost">Logout</button>
+        </form>
+    </div>
+</header>

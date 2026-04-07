@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ purchase_order.code }} · NIVORA{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="page-head">
+        <div>
+            <p class="eyebrow">Purchase order</p>
+            <h2>{{ purchase_order.code }}</h2>
+            <p>{{ purchase_order.supplier.name }} · expected {{ purchase_order.expected_on|date:"M j, Y" }}</p>
+        </div>
+        <div class="head-actions">
+            <a href="{% url 'operations:purchase_order_receive' purchase_order.pk %}" class="btn-primary">Record receipt</a>
+        </div>
+    </div>
+
+    <div class="metric-grid metric-grid-tight">
+        {% include 'components/metric_card.html' with label='Status' value=purchase_order.get_status_display hint='Current inbound progress' %}
+        {% include 'components/metric_card.html' with label='Total' value=purchase_order.total_amount hint='Current committed spend' %}
+        {% include 'components/metric_card.html' with label='Supplier' value=purchase_order.supplier.name hint='Selected intake partner' %}
+    </div>
+
+    <div class="dashboard-grid">
+        <article class="panel table-panel">
+            <div class="panel-head">
+                <div>
+                    <p class="eyebrow">Lines</p>
+                    <h3>Ordered vs received</h3>
+                </div>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Ordered</th>
+                        <th>Received</th>
+                        <th>Unit cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for line in purchase_order.lines.all %}
+                        <tr>
+                            <td>{{ line.product.name }}</td>
+                            <td class="mono">{{ line.quantity_ordered }}</td>
+                            <td class="mono">{{ line.quantity_received }}</td>
+                            <td class="mono">{{ line.unit_cost }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </article>
+
+        <article class="panel">
+            <div class="panel-head">
+                <div>
+                    <p class="eyebrow">Receipts</p>
+                    <h3>Inbound history</h3>
+                </div>
+            </div>
+            <div class="stack-list">
+                {% for receipt in receipts %}
+                    <div class="list-card">
+                        <div>
+                            <strong>{{ receipt.code }}</strong>
+                            <p class="muted">{{ receipt.received_on|date:"M j, Y" }} · {{ receipt.reference_number|default:"No reference" }}</p>
+                        </div>
+                        {% include 'components/status_badge.html' with status=receipt.status label=receipt.get_status_display %}
+                    </div>
+                {% empty %}
+                    {% include 'components/empty_state.html' with title='No receipts yet' message='Record the first goods receipt once stock reaches the warehouse.' %}
+                {% endfor %}
+            </div>
+        </article>
+    </div>
+</section>
+{% endblock %}

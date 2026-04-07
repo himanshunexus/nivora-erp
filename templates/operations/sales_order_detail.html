@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ sales_order.code }} · NIVORA{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="page-head">
+        <div>
+            <p class="eyebrow">Sales order</p>
+            <h2>{{ sales_order.code }}</h2>
+            <p>{{ sales_order.customer.name }} · promised {{ sales_order.promised_on|date:"M j, Y" }}</p>
+        </div>
+        <div class="head-actions">
+            {% if sales_order.status != 'dispatched' %}
+                <a href="{% url 'operations:sales_order_dispatch' sales_order.pk %}" class="btn-primary">Dispatch order</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="metric-grid metric-grid-tight">
+        {% include 'components/metric_card.html' with label='Status' value=sales_order.get_status_display hint='Auto-derived from stock readiness and dispatch' %}
+        {% include 'components/metric_card.html' with label='Total' value=sales_order.total_amount hint='Current order value' %}
+        {% include 'components/metric_card.html' with label='Customer' value=sales_order.customer.name hint='Outbound account' %}
+    </div>
+
+    <div class="dashboard-grid">
+        <article class="panel table-panel">
+            <div class="panel-head">
+                <div>
+                    <p class="eyebrow">Lines</p>
+                    <h3>Outbound demand</h3>
+                </div>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Unit price</th>
+                        <th>Line total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for line in sales_order.lines.all %}
+                        <tr>
+                            <td>{{ line.product.name }}</td>
+                            <td class="mono">{{ line.quantity_ordered }}</td>
+                            <td class="mono">{{ line.unit_price }}</td>
+                            <td class="mono">{{ line.line_total }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </article>
+
+        <article class="panel">
+            <div class="panel-head">
+                <div>
+                    <p class="eyebrow">Dispatch pack</p>
+                    <h3>Shipment and invoice</h3>
+                </div>
+            </div>
+            <div class="stack-list compact-list">
+                {% if shipment %}
+                    <div class="list-card">
+                        <div>
+                            <strong>{{ shipment.shipment_code }}</strong>
+                            <p class="muted">{{ shipment.carrier }} · {{ shipment.tracking_number }}</p>
+                        </div>
+                        {% include 'components/status_badge.html' with status=shipment.status label=shipment.get_status_display %}
+                    </div>
+                {% else %}
+                    <div class="muted">Shipment will appear after dispatch.</div>
+                {% endif %}
+
+                {% if invoice %}
+                    <div class="list-card">
+                        <div>
+                            <strong>{{ invoice.invoice_number }}</strong>
+                            <p class="muted">Issued {{ invoice.issued_at|date:"M j, Y" }}</p>
+                        </div>
+                        {% include 'components/status_badge.html' with status=invoice.status label=invoice.get_status_display %}
+                    </div>
+                {% else %}
+                    <div class="muted">Invoice will be generated at dispatch.</div>
+                {% endif %}
+            </div>
+        </article>
+    </div>
+</section>
+{% endblock %}
