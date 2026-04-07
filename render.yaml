@@ -32,4 +32,3 @@ services:
 databases:
   - name: nivora-db
     plan: free
-    postgresSQLVersion: 15
