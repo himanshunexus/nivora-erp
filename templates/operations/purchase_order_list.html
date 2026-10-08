@@ -4,51 +4,54 @@
 
 {% block content %}
 {% url 'operations:purchase_order_create' as purchase_order_create_url %}
-<section class="page-section">
-    <div class="page-head">
+<section class="page-section purchase-orders-page">
+    <div class="stitch-header">
         <div>
-            <p class="eyebrow">Procurement</p>
+            <p class="eyebrow">Procurement workspace</p>
             <h2>Purchase orders</h2>
-            <p>Track submitted orders, receipt progress, and warehouse intake before QC release.</p>
+            <p>Track inbound stock from supplier confirmation to warehouse intake.</p>
         </div>
-        <div class="head-actions">
-            <form method="get" class="inline-search">
-                <select name="status">
-                    <option value="">All statuses</option>
-                    <option value="submitted" {% if status_filter == 'submitted' %}selected{% endif %}>Submitted</option>
-                    <option value="partially_received" {% if status_filter == 'partially_received' %}selected{% endif %}>Partially received</option>
-                    <option value="received" {% if status_filter == 'received' %}selected{% endif %}>Received</option>
-                </select>
-                <button type="submit" class="btn-secondary">Filter</button>
-            </form>
-            <a href="{% url 'operations:purchase_order_create' %}" class="btn-primary">New PO</a>
-        </div>
+        <a href="{% url 'operations:purchase_order_create' %}" class="btn-primary">+ New order</a>
     </div>
 
-    <article class="panel table-panel">
+    <article class="procurement-hero">
+        <span class="hero-orbit" aria-hidden="true"></span>
+        <p class="eyebrow">Supply chain overview</p>
+        <h3>Keep every delivery moving.</h3>
+        <p>Review supplier commitments, expected dates, and receiving progress in one place.</p>
+    </article>
+
+    <div class="metric-grid purchase-summary">
+        <article class="metric-card"><span class="metric-label">Total orders</span><strong class="metric-value">{{ purchase_order_summary.total }}</strong></article>
+        <article class="metric-card"><span class="metric-label">Submitted</span><strong class="metric-value">{{ purchase_order_summary.submitted }}</strong></article>
+        <article class="metric-card"><span class="metric-label">Received</span><strong class="metric-value">{{ purchase_order_summary.received }}</strong></article>
+    </div>
+
+    <form method="get" class="stitch-filters" aria-label="Filter purchase orders">
+        <a href="{% url 'operations:purchase_order_list' %}" class="{% if not status_filter %}active{% endif %}">All</a>
+        <a href="?status=submitted" class="{% if status_filter == 'submitted' %}active{% endif %}">Submitted</a>
+        <a href="?status=partially_received" class="{% if status_filter == 'partially_received' %}active{% endif %}">In progress</a>
+        <a href="?status=received" class="{% if status_filter == 'received' %}active{% endif %}">Received</a>
+    </form>
+
+    <article class="purchase-order-cards">
         {% if page_obj %}
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Code</th>
-                        <th>Supplier</th>
-                        <th>Status</th>
-                        <th>Expected</th>
-                        <th>Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for purchase_order in page_obj %}
-                        <tr onclick="window.location='{% url 'operations:purchase_order_detail' purchase_order.pk %}'">
-                            <td class="mono">{{ purchase_order.code }}</td>
-                            <td>{{ purchase_order.supplier.name }}</td>
-                            <td>{% include 'components/status_badge.html' with status=purchase_order.status label=purchase_order.get_status_display %}</td>
-                            <td>{{ purchase_order.expected_on|date:"M j, Y" }}</td>
-                            <td class="mono">{{ purchase_order.total_amount }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            {% for purchase_order in page_obj %}
+                {% with first_line=purchase_order.lines.all|first %}
+                    <a class="purchase-order-card" href="{% url 'operations:purchase_order_detail' purchase_order.pk %}">
+                        <div class="purchase-order-card-head">
+                            <span class="mono">{{ purchase_order.code }}</span>
+                            {% include 'components/status_badge.html' with status=purchase_order.status label=purchase_order.get_status_display %}
+                        </div>
+                        <h3>{{ first_line.product.name|default:"Purchase order items" }}</h3>
+                        <p class="muted">{{ purchase_order.supplier.name }}</p>
+                        <div class="purchase-order-card-foot">
+                            <span>Expected {{ purchase_order.expected_on|date:"M j, Y" }}</span>
+                            <strong class="mono">{{ purchase_order.total_amount }}</strong>
+                        </div>
+                    </a>
+                {% endwith %}
+            {% endfor %}
         {% else %}
             {% include 'components/empty_state.html' with title='No purchase orders yet' message='Open your first purchase order to start the inbound workflow.' action_url=purchase_order_create_url action_label='Create purchase order' %}
         {% endif %}

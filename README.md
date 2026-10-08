@@ -42,6 +42,17 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+### Persistent demo data
+
+Render runs `migrate` and `seed_data --force` before starting Gunicorn. The command
+loads [data/seed_data.json](data/seed_data.json) into the configured database only
+when the `acme-operations` workspace does not already exist, so cold starts and
+restarts do not erase or duplicate records. It creates 30+ records across the
+supplier, customer, product, procurement, fulfillment, inventory, QC, notification,
+and activity collections. The generated demo accounts use
+`admin@acme.example` / `ChangeMe-2026!` and should be changed immediately in a
+real environment.
+
 ## Architecture Notes
 
 - Modular monolith with explicit service layer

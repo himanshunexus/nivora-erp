@@ -26,6 +26,30 @@
         }, 3600);
     }
 
+    function renderCommandResults(results) {
+        if (!commandResults) return;
+        commandResults.replaceChildren();
+        results.forEach((result) => {
+            const link = document.createElement("a");
+            link.className = "command-result";
+            link.href = result.url || "#";
+
+            const details = document.createElement("div");
+            const title = document.createElement("strong");
+            title.textContent = result.title || "";
+            const subtitle = document.createElement("div");
+            subtitle.className = "muted";
+            subtitle.textContent = result.subtitle || "";
+            details.append(title, subtitle);
+
+            const type = document.createElement("div");
+            type.className = "muted";
+            type.textContent = result.type || "";
+            link.append(details, type);
+            commandResults.appendChild(link);
+        });
+    }
+
     window.Nivora = {
         toast: renderToast,
         openModal(id) {
@@ -105,19 +129,7 @@
                         commandResults.innerHTML = '<div class="muted">No matching records found.</div>';
                         return;
                     }
-                    commandResults.innerHTML = results
-                        .map(
-                            (result) => `
-                                <a class="command-result" href="${result.url}">
-                                    <div>
-                                        <strong>${result.title}</strong>
-                                        <div class="muted">${result.subtitle || ""}</div>
-                                    </div>
-                                    <div class="muted">${result.type}</div>
-                                </a>
-                            `
-                        )
-                        .join("");
+                    renderCommandResults(results);
                 } catch (error) {
                     commandResults.innerHTML = '<div class="muted">Search is temporarily unavailable.</div>';
                 }

@@ -3,6 +3,10 @@ import json
 from django.http import JsonResponse
 
 
+class InvalidRequestData(ValueError):
+    """Raised when an API request body is not valid JSON."""
+
+
 def is_api_request(request):
     return request.path.startswith("/api/")
 
@@ -10,7 +14,13 @@ def is_api_request(request):
 def parse_request_data(request):
     if request.content_type and "application/json" in request.content_type:
         body = request.body.decode("utf-8") or "{}"
-        return json.loads(body)
+        try:
+            payload = json.loads(body)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise InvalidRequestData("Request body must contain valid JSON.") from exc
+        if not isinstance(payload, dict):
+            raise InvalidRequestData("Request body must be a JSON object.")
+        return payload
     return request.POST.dict()
 
 

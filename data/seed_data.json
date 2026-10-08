@@ -1,0 +1,63 @@
+{
+  "workspace": {
+    "name": "Acme Operations",
+    "slug": "acme-operations",
+    "domain": "acme.example"
+  },
+  "suppliers": [
+    "Atlas Industrial Supply", "BluePeak Components", "Cedar & Co Materials",
+    "Delta Fasteners", "Evergreen Packaging", "ForgePoint Metals",
+    "Granite Electrical", "Harborline Logistics", "Ionix Manufacturing",
+    "Juniper Plastics", "Keystone Hardware", "Lumen Circuitry",
+    "Maple Tooling", "Northstar Bearings", "Oakridge Safety",
+    "Pioneer Labels", "Quantum Cables", "Redwood Machining",
+    "Summit Seals", "Titan Surface Works", "United Pallets",
+    "Vertex Sensors", "Westfield Textiles", "Yardley Chemicals",
+    "Zenith Assemblies", "Arbor Industrial", "Brightline Imports",
+    "Copperleaf Goods", "Mosaic Components", "Silvercrest Supply"
+  ],
+  "customers": [
+    "Apex Robotics", "Beacon Retail Group", "Cobalt Medical", "Driftwood Labs",
+    "Elm Street Hardware", "Fathom Analytics", "Greenline Mobility",
+    "Helix Consumer Goods", "Ironwood Kitchens", "Juniper Home",
+    "Kinetic Devices", "Lattice Networks", "Meridian Tools",
+    "NovaCare Systems", "Oak & Pine Retail", "Pioneer Automation",
+    "Quartz Office Supply", "Riverbend Manufacturing", "Solstice Energy",
+    "TrueNorth Distribution", "Union Workshop", "Vantage Instruments",
+    "Willow Creek Foods", "Xenon Safety", "Yellowstone Outfitters",
+    "Zephyr Marine", "Alloy Design Studio", "Brookstone Commerce",
+    "Crescent Field Services", "Northwind Research"
+  ],
+  "products": [
+    {"name": "Aluminum Sheet 6061", "sku": "RAW-1001", "category": "Raw Materials", "unit": "sheet"},
+    {"name": "Cold Rolled Steel Coil", "sku": "RAW-1002", "category": "Raw Materials", "unit": "kg"},
+    {"name": "ABS Resin Pellets", "sku": "RAW-1003", "category": "Raw Materials", "unit": "kg"},
+    {"name": "Copper Wire 2mm", "sku": "RAW-1004", "category": "Raw Materials", "unit": "roll"},
+    {"name": "Industrial Adhesive", "sku": "CHEM-2001", "category": "Chemicals", "unit": "liter"},
+    {"name": "Threadlocker Blue", "sku": "CHEM-2002", "category": "Chemicals", "unit": "bottle"},
+    {"name": "M8 Hex Bolt", "sku": "HW-3001", "category": "Hardware", "unit": "box"},
+    {"name": "M8 Nylon Lock Nut", "sku": "HW-3002", "category": "Hardware", "unit": "box"},
+    {"name": "Stainless Washer", "sku": "HW-3003", "category": "Hardware", "unit": "box"},
+    {"name": "Precision Bearing 6204", "sku": "HW-3004", "category": "Hardware", "unit": "unit"},
+    {"name": "Control PCB Rev C", "sku": "ELEC-4001", "category": "Electronics", "unit": "unit"},
+    {"name": "Power Supply 24V", "sku": "ELEC-4002", "category": "Electronics", "unit": "unit"},
+    {"name": "Temperature Sensor", "sku": "ELEC-4003", "category": "Electronics", "unit": "unit"},
+    {"name": "Ethernet Gateway", "sku": "ELEC-4004", "category": "Electronics", "unit": "unit"},
+    {"name": "Injection Mold Housing", "sku": "CASE-5001", "category": "Casings", "unit": "unit"},
+    {"name": "Front Panel Black", "sku": "CASE-5002", "category": "Casings", "unit": "unit"},
+    {"name": "Rubber Gasket 80mm", "sku": "CASE-5003", "category": "Casings", "unit": "unit"},
+    {"name": "Safety Guard Assembly", "sku": "CASE-5004", "category": "Casings", "unit": "unit"},
+    {"name": "Smart Motor Controller", "sku": "FG-6001", "category": "Finished Goods", "unit": "unit"},
+    {"name": "Compact Control Unit", "sku": "FG-6002", "category": "Finished Goods", "unit": "unit"},
+    {"name": "Warehouse Scanner", "sku": "FG-6003", "category": "Finished Goods", "unit": "unit"},
+    {"name": "Edge Monitoring Kit", "sku": "FG-6004", "category": "Finished Goods", "unit": "kit"},
+    {"name": "Shipping Carton Small", "sku": "PACK-7001", "category": "Packaging", "unit": "unit"},
+    {"name": "Shipping Carton Large", "sku": "PACK-7002", "category": "Packaging", "unit": "unit"},
+    {"name": "Foam Insert Set", "sku": "PACK-7003", "category": "Packaging", "unit": "set"},
+    {"name": "Tamper Seal Roll", "sku": "PACK-7004", "category": "Packaging", "unit": "roll"},
+    {"name": "Inspection Tag", "sku": "PACK-7005", "category": "Packaging", "unit": "pack"},
+    {"name": "ESD Protective Bag", "sku": "PACK-7006", "category": "Packaging", "unit": "pack"},
+    {"name": "Calibration Certificate", "sku": "SERV-8001", "category": "Services", "unit": "service"},
+    {"name": "Express Freight Service", "sku": "SERV-8002", "category": "Services", "unit": "shipment"}
+  ]
+}

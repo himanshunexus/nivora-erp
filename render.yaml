@@ -3,7 +3,7 @@ services:
     name: nivora-erp
     runtime: python
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
-    startCommand: gunicorn config.wsgi
+    startCommand: python manage.py migrate --noinput && python manage.py seed_data --force && gunicorn config.wsgi
     preDeployCommand: python manage.py migrate
     envVars:
       - key: PYTHON_VERSION

@@ -4,6 +4,7 @@ from django.http import JsonResponse
 
 from core.permissions import user_has_permission
 from services.auth import AuthServiceError, authenticate_token
+from utils.api import InvalidRequestData
 
 
 def resolve_api_actor(request):
@@ -47,7 +48,10 @@ def api_auth_required(permission=None):
             request.actor = actor
             request.api_workspace = workspace
             request.api_membership = membership
-            return view_func(request, *args, **kwargs)
+            try:
+                return view_func(request, *args, **kwargs)
+            except InvalidRequestData as exc:
+                return JsonResponse({"ok": False, "message": str(exc)}, status=400)
 
         return wrapped
 

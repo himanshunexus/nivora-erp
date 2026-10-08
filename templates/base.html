@@ -7,7 +7,7 @@
     <title>{% block title %}{{ platform_name }}{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Montserrat:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
     <script>
         tailwind.config = {
@@ -70,6 +70,13 @@
     {% if user.is_authenticated %}
                 </section>
             </main>
+            <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+                <a href="{% url 'dashboard:home' %}" class="{% if request.resolver_match.namespace == 'dashboard' %}active{% endif %}">Home</a>
+                <a href="{% url 'operations:purchase_order_list' %}" class="{% if request.resolver_match.url_name == 'purchase_order_list' %}active{% endif %}">Orders</a>
+                <a href="{% url 'operations:product_list' %}" class="{% if request.resolver_match.url_name == 'product_list' %}active{% endif %}">Stock</a>
+                <a href="{% url 'notifications:center' %}" class="{% if request.resolver_match.namespace == 'notifications' %}active{% endif %}">Alerts</a>
+                <a href="{% url 'operations:hub' %}" class="{% if request.resolver_match.url_name == 'hub' %}active{% endif %}">More</a>
+            </nav>
         </div>
     {% else %}
         </main>

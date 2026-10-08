@@ -184,7 +184,8 @@ def product_edit(request, pk):
 @require_workspace_permission("procurement.manage")
 def purchase_order_list(request):
     workspace = _require_workspace(request)
-    purchase_orders = PurchaseOrder.objects.filter(workspace=workspace, is_active=True).select_related("supplier")
+    all_purchase_orders = PurchaseOrder.objects.filter(workspace=workspace, is_active=True)
+    purchase_orders = all_purchase_orders.select_related("supplier").prefetch_related("lines__product")
     status_filter = request.GET.get("status", "").strip()
     if status_filter:
         purchase_orders = purchase_orders.filter(status=status_filter)
@@ -193,7 +194,15 @@ def purchase_order_list(request):
     return render(
         request,
         "operations/purchase_order_list.html",
-        {"page_obj": page_obj, "status_filter": status_filter},
+        {
+            "page_obj": page_obj,
+            "status_filter": status_filter,
+            "purchase_order_summary": {
+                "total": all_purchase_orders.count(),
+                "submitted": all_purchase_orders.filter(status="submitted").count(),
+                "received": all_purchase_orders.filter(status="received").count(),
+            },
+        },
     )
 
 

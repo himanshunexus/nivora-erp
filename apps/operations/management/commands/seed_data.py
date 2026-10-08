@@ -1,274 +1,305 @@
-import random
-from decimal import Decimal
+import json
 from datetime import timedelta
-from django.utils import timezone
-from django.core.management.base import BaseCommand, CommandError
+from decimal import Decimal
+from pathlib import Path
+
 from django.contrib.auth import get_user_model
-from django.conf import settings
+from django.core.management.base import BaseCommand
+from django.db import transaction
+from django.utils import timezone
 
 from apps.accounts.models import Workspace, WorkspaceMembership
-from apps.operations.models import (
-    Supplier, Customer, Product, PurchaseOrder, PurchaseOrderLine,
-    GoodsReceipt, GoodsReceiptLine, InventoryLot, QualityInspection,
-    InventoryMovement, SalesOrder, SalesOrderLine, Shipment, Invoice, ActivityEvent
-)
 from apps.notifications.models import Notification
+from apps.operations.models import (
+    ActivityEvent,
+    Customer,
+    GoodsReceipt,
+    GoodsReceiptLine,
+    InventoryLot,
+    InventoryMovement,
+    Invoice,
+    Product,
+    PurchaseOrder,
+    PurchaseOrderLine,
+    QualityInspection,
+    SalesOrder,
+    SalesOrderLine,
+    Shipment,
+    StockReservation,
+    StockReservationLine,
+    Supplier,
+)
 
 User = get_user_model()
+SEED_FILE = Path(__file__).resolve().parents[4] / "data" / "seed_data.json"
+SEED_EMAIL = "admin@acme.example"
+
 
 class Command(BaseCommand):
-    help = 'Seed logical data into the system (Development only)'
+    help = "Create the durable demo workspace and realistic operational data once."
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            '--force',
-            action='store_true',
-            help='Force seed data generation without confirmation (DEVELOPMENT ONLY)',
+        parser.add_argument("--force", action="store_true", help="Run without an interactive prompt.")
+
+    @transaction.atomic
+    def handle(self, *args, **options):
+        if Workspace.objects.filter(slug="acme-operations").exists():
+            self.stdout.write("Seed workspace already exists; leaving existing data untouched.")
+            return
+
+        with SEED_FILE.open(encoding="utf-8") as seed_file:
+            seed = json.load(seed_file)
+
+        now = timezone.now()
+        today = now.date()
+        user, _ = User.objects.get_or_create(
+            email=SEED_EMAIL,
+            defaults={
+                "full_name": "Avery Morgan",
+                "job_title": "Operations Administrator",
+                "avatar_url": "https://i.pravatar.cc/160?img=12",
+                "is_staff": True,
+                "is_active": True,
+            },
         )
+        user.set_password("ChangeMe-2026!")
+        user.save(update_fields=["password", "full_name", "job_title", "is_staff", "is_active"])
 
-    def handle(self, *args, **kwargs):
-        # Safety check: only allow in DEBUG mode
-        if not settings.DEBUG:
-            raise CommandError(
-                "❌ seed_data command is only available in DEBUG mode. "
-                "This command is for development/testing only."
-            )
-
-        force = kwargs.get('force', False)
-        if not force:
-            confirm = input(
-                "⚠️  This command will create test data. Continue? (yes/no): "
-            )
-            if confirm.lower() != 'yes':
-                self.stdout.write("Cancelled.")
-                return
-
-        self.stdout.write("Starting data generation...")
-        
-        # 1. Accounts
-        user, _ = User.objects.get_or_create(email="admin@acme.corp", defaults={
-            "full_name": "Admin Operator", "is_superuser": True, "is_staff": True
-        })
-        user.set_password("admin123")
-        user.save()
-
-        workspace, _ = Workspace.objects.get_or_create(
-            slug="acme-corp", 
-            defaults={"name": "Acme Corp", "created_by": user, "updated_by": user}
+        workspace = Workspace.objects.create(
+            **seed["workspace"],
+            created_by=user,
+            updated_by=user,
         )
-        
         user.default_workspace = workspace
-        user.save()
-
-        WorkspaceMembership.objects.get_or_create(
-            user=user, workspace=workspace, defaults={"role": "owner", "is_default": True}
+        user.save(update_fields=["default_workspace"])
+        WorkspaceMembership.objects.create(
+            workspace=workspace, user=user, role="owner", title="Operations Administrator", is_default=True
         )
-        
-        for i in range(1, 4):
-            u, _ = User.objects.get_or_create(email=f"operator{i}@acme.corp", defaults={"full_name": f"Operator {i}"})
-            u.set_password("operator123")
-            u.save()
-            WorkspaceMembership.objects.get_or_create(user=u, workspace=workspace, defaults={"role": "operator"})
 
-        def stamp():
-            return {"workspace": workspace, "created_by": user, "updated_by": user}
-
-        self.stdout.write("Created Workspace & Users.")
-
-        # 2. Suppliers
-        suppliers = []
-        for name in ["Global Supplies Inc", "TechParts Co", "MetalWorks Ltd", "Prime Plastics"]:
-            sup, _ = Supplier.objects.get_or_create(name=name, defaults=stamp())
-            suppliers.append(sup)
-            
-        # 3. Customers
-        customers = []
-        for name in ["Apex Innovations", "Beta Distributions", "Gamma Retails", "Delta Machines"]:
-            cust, _ = Customer.objects.get_or_create(name=name, defaults=stamp())
-            customers.append(cust)
-
-        self.stdout.write("Created Suppliers & Customers.")
-
-        # 4. Products
-        products = []
-        product_names = [
-            ("Raw Aluminum", "RAW-001", "Raw Materials"),
-            ("Steel Bolts", "HW-012", "Hardware"),
-            ("Circuit Board RevA", "PCB-001", "Electronics"),
-            ("Plastic Housing", "PL-050", "Casing"),
-            ("Finished Device A", "FG-001", "Finished Goods"),
-            ("Finished Device B", "FG-002", "Finished Goods"),
-        ]
-        
-        for name, sku, cat in product_names:
-            p, _ = Product.objects.get_or_create(
-                workspace=workspace,
-                sku=sku,
+        operators = []
+        for index in range(1, 6):
+            operator, _ = User.objects.get_or_create(
+                email=f"operator{index}@acme.example",
                 defaults={
-                    "name": name,
-                    "category": cat,
-                    "cost_price": Decimal(random.randint(5, 50)),
-                    "unit_price": Decimal(random.randint(60, 200)),
-                    "stock_on_hand": random.randint(50, 200),
-                    "created_by": user,
-                    "updated_by": user
-                }
+                    "full_name": f"Operations Specialist {index}",
+                    "job_title": "Warehouse Operator",
+                    "avatar_url": f"https://i.pravatar.cc/160?img={20 + index}",
+                },
             )
-            products.append(p)
-            
-        self.stdout.write(f"Created {len(products)} products.")
+            operator.set_password("ChangeMe-2026!")
+            operator.default_workspace = workspace
+            operator.save(update_fields=["password", "default_workspace"])
+            WorkspaceMembership.objects.create(
+                workspace=workspace, user=operator, role="operator", title="Warehouse Operator"
+            )
+            operators.append(operator)
 
-        # 5. Purchase Orders
-        po = PurchaseOrder.objects.create(
-            workspace=workspace,
-            code="PO-2026-001",
-            supplier=suppliers[0],
-            status=PurchaseOrder.Status.RECEIVED,
-            ordered_on=timezone.now().date() - timedelta(days=10),
-            expected_on=timezone.now().date() - timedelta(days=2),
-            subtotal=Decimal("5000"),
-            total_amount=Decimal("5000"),
-            created_by=user, updated_by=user
-        )
-        
-        pol = PurchaseOrderLine.objects.create(
-            workspace=workspace,
-            purchase_order=po,
-            product=products[0],
-            quantity_ordered=100,
-            quantity_received=100,
-            unit_cost=Decimal("50"),
-            line_total=Decimal("5000"),
-            created_by=user, updated_by=user
-        )
+        stamp = {"workspace": workspace, "created_by": user, "updated_by": user}
+        suppliers = [
+            Supplier.objects.create(
+                name=name,
+                email=f"vendor{index:02d}@suppliers.example",
+                phone=f"+1 555 010 {index:04d}",
+                lead_time_days=4 + index % 14,
+                payment_terms=["Net 15", "Net 30", "Net 45"][index % 3],
+                status=["active", "active", "review", "paused"][index % 4],
+                **stamp,
+            )
+            for index, name in enumerate(seed["suppliers"], 1)
+        ]
+        customers = [
+            Customer.objects.create(
+                name=name,
+                company=name,
+                email=f"buyer{index:02d}@customers.example",
+                phone=f"+1 555 020 {index:04d}",
+                billing_address=f"{100 + index} Market Street, Portland, OR",
+                shipping_address=f"{100 + index} Distribution Way, Portland, OR",
+                **stamp,
+            )
+            for index, name in enumerate(seed["customers"], 1)
+        ]
+        products = []
+        for index, definition in enumerate(seed["products"], 1):
+            products.append(
+                Product.objects.create(
+                    **definition,
+                    description=f"Production-ready {definition['name'].lower()} for the Acme operations catalog.",
+                    reorder_level=10 + index % 20,
+                    stock_on_hand=35 + (index * 17) % 240,
+                    reserved_quantity=index % 7,
+                    cost_price=Decimal(str(8 + (index * 13) % 92)),
+                    unit_price=Decimal(str(18 + (index * 29) % 260)),
+                    is_quality_control_required=index % 5 != 0,
+                    **stamp,
+                )
+            )
 
-        gr = GoodsReceipt.objects.create(
-            workspace=workspace,
-            code="GR-2026-001",
-            purchase_order=po,
-            received_on=timezone.now().date() - timedelta(days=1),
-            status=GoodsReceipt.Status.COMPLETED,
-            created_by=user, updated_by=user
-        )
-        
-        grl = GoodsReceiptLine.objects.create(
-            workspace=workspace,
-            goods_receipt=gr,
-            purchase_order_line=pol,
-            product=products[0],
-            quantity_received=100,
-            accepted_quantity=100,
-            unit_cost=Decimal("50"),
-            created_by=user, updated_by=user
-        )
-        
-        lot = InventoryLot.objects.create(
-            workspace=workspace,
-            product=products[0],
-            goods_receipt_line=grl,
-            lot_code="LOT-2026-A1",
-            quantity_received=100,
-            quantity_available=100,
-            status=InventoryLot.Status.AVAILABLE,
-            created_by=user, updated_by=user
-        )
+        purchase_orders = []
+        sales_orders = []
+        for index in range(1, 31):
+            supplier = suppliers[(index - 1) % len(suppliers)]
+            product = products[(index * 3) % len(products)]
+            ordered_on = today - timedelta(days=45 - index)
+            status = ["received", "received", "partially_received", "submitted", "draft"][index % 5]
+            quantity = 20 + (index * 7) % 90
+            unit_cost = product.cost_price
+            total = unit_cost * quantity
+            purchase_order = PurchaseOrder.objects.create(
+                code=f"PO-2026-{index:03d}",
+                supplier=supplier,
+                status=status,
+                ordered_on=ordered_on,
+                expected_on=ordered_on + timedelta(days=supplier.lead_time_days),
+                subtotal=total,
+                total_amount=total,
+                notes="Seeded planning order" if index % 4 == 0 else "",
+                **stamp,
+            )
+            received = quantity if status == "received" else quantity // 2 if status == "partially_received" else 0
+            po_line = PurchaseOrderLine.objects.create(
+                purchase_order=purchase_order,
+                product=product,
+                quantity_ordered=quantity,
+                quantity_received=received,
+                unit_cost=unit_cost,
+                **stamp,
+            )
+            purchase_orders.append((purchase_order, po_line, received))
 
-        QualityInspection.objects.create(
-            workspace=workspace,
-            inventory_lot=lot,
-            status=QualityInspection.Status.APPROVED,
-            accepted_quantity=100,
-            inspected_by=user,
-            inspected_at=timezone.now(),
-            created_by=user, updated_by=user
-        )
-        
-        InventoryMovement.objects.create(
-            workspace=workspace,
-            product=products[0],
-            inventory_lot=lot,
-            movement_type=InventoryMovement.Type.INBOUND,
-            quantity=100,
-            reference_code=lot.lot_code,
-            created_by=user, updated_by=user
-        )
+            customer = customers[(index * 5) % len(customers)]
+            sales_product = products[(index * 7) % len(products)]
+            sales_quantity = 2 + index % 8
+            sales_total = sales_product.unit_price * sales_quantity
+            sales_status = ["completed", "dispatched", "ready_for_dispatch", "confirmed", "awaiting_stock"][index % 5]
+            sales_order = SalesOrder.objects.create(
+                code=f"SO-2026-{index:03d}",
+                customer=customer,
+                status=sales_status,
+                ordered_on=today - timedelta(days=index % 21),
+                promised_on=today + timedelta(days=index % 14),
+                subtotal=sales_total,
+                total_amount=sales_total,
+                **stamp,
+            )
+            SalesOrderLine.objects.create(
+                sales_order=sales_order,
+                product=sales_product,
+                quantity_ordered=sales_quantity,
+                unit_price=sales_product.unit_price,
+                **stamp,
+            )
+            sales_orders.append((sales_order, sales_product, sales_quantity, sales_total))
 
-        self.stdout.write("Simulated Full Inbound Workflow.")
+        for index, (purchase_order, po_line, received) in enumerate(purchase_orders, 1):
+            if not received:
+                continue
+            receipt = GoodsReceipt.objects.create(
+                code=f"GR-2026-{index:03d}",
+                purchase_order=purchase_order,
+                received_on=purchase_order.ordered_on + timedelta(days=7),
+                reference_number=f"ASN-ACME-{index:05d}",
+                status="completed" if index % 4 else "pending_qc",
+                **stamp,
+            )
+            receipt_line = GoodsReceiptLine.objects.create(
+                goods_receipt=receipt,
+                purchase_order_line=po_line,
+                product=po_line.product,
+                quantity_received=received,
+                accepted_quantity=received if index % 4 else received // 2,
+                rejected_quantity=0 if index % 4 else received - received // 2,
+                unit_cost=po_line.unit_cost,
+                **stamp,
+            )
+            lot_status = "available" if index % 4 else "pending_qc"
+            lot = InventoryLot.objects.create(
+                product=po_line.product,
+                goods_receipt_line=receipt_line,
+                lot_code=f"LOT-2026-{index:03d}",
+                quantity_received=received,
+                quantity_available=received if lot_status == "available" else received // 2,
+                status=lot_status,
+                **stamp,
+            )
+            inspection_status = "approved" if index % 4 else "pending"
+            QualityInspection.objects.create(
+                inventory_lot=lot,
+                status=inspection_status,
+                accepted_quantity=received if inspection_status == "approved" else received // 2,
+                rejected_quantity=0 if inspection_status == "approved" else received - received // 2,
+                inspected_by=user if inspection_status == "approved" else None,
+                inspected_at=now - timedelta(days=index) if inspection_status == "approved" else None,
+                notes="Sampling inspection completed." if inspection_status == "approved" else "Awaiting warehouse review.",
+                **stamp,
+            )
+            InventoryMovement.objects.create(
+                product=po_line.product,
+                inventory_lot=lot,
+                movement_type="inbound",
+                quantity=received,
+                reference_code=lot.lot_code,
+                **stamp,
+            )
 
-        # 6. Sales Orders
-        so = SalesOrder.objects.create(
-            workspace=workspace,
-            code="SO-2026-001",
-            customer=customers[0],
-            status=SalesOrder.Status.COMPLETED,
-            ordered_on=timezone.now().date(),
-            subtotal=Decimal("1500"),
-            total_amount=Decimal("1500"),
-            created_by=user, updated_by=user
-        )
-        
-        SalesOrderLine.objects.create(
-            workspace=workspace,
-            sales_order=so,
-            product=products[-1],
-            quantity_ordered=5,
-            unit_price=Decimal("300"),
-            line_total=Decimal("1500"),
-            created_by=user, updated_by=user
-        )
-        
-        shipment = Shipment.objects.create(
-            workspace=workspace,
-            sales_order=so,
-            shipment_code="SH-2026-001",
-            carrier="FedEx",
-            tracking_number="1Z9999W99999999999",
-            status=Shipment.Status.DELIVERED,
-            dispatched_at=timezone.now(),
-            created_by=user, updated_by=user
-        )
-        
-        inv = Invoice.objects.create(
-            workspace=workspace,
-            sales_order=so,
-            invoice_number="INV-2026-001",
-            status=Invoice.Status.ISSUED,
-            issued_at=timezone.now().date(),
-            due_on=timezone.now().date() + timedelta(days=30),
-            total_amount=Decimal("1500"),
-            created_by=user, updated_by=user
-        )
-        
-        InventoryMovement.objects.create(
-            workspace=workspace,
-            product=products[-1],
-            movement_type=InventoryMovement.Type.OUTBOUND,
-            quantity=-5,
-            reference_code=so.code,
-            created_by=user, updated_by=user
-        )
-        
-        self.stdout.write("Simulated Full Outbound Workflow.")
-        
-        # 7. Notifications
-        Notification.objects.create(
-            workspace=workspace,
-            recipient=user,
-            title="System Seed",
-            message="Data seeded successfully in workspace.",
-            level=Notification.Level.SUCCESS,
-            created_by=user, updated_by=user
-        )
-        
-        # 8. Activity Events
-        ActivityEvent.objects.create(
-            workspace=workspace,
-            actor=user,
-            event_type="app.seeded",
-            message=f"{user.full_name} seeded full demo data.",
-            created_by=user, updated_by=user
-        )
-        
-        self.stdout.write(self.style.SUCCESS("All logical data seeded successfully!"))
-        self.stdout.write(self.style.WARNING("⚠️  Test credentials created - DO NOT USE IN PRODUCTION"))
+        for index, (sales_order, product, quantity, total) in enumerate(sales_orders, 1):
+            if sales_order.status not in {"dispatched", "completed"}:
+                continue
+            Shipment.objects.create(
+                sales_order=sales_order,
+                shipment_code=f"SH-2026-{index:03d}",
+                carrier=["FedEx", "UPS", "DHL", "USPS"][index % 4],
+                tracking_number=f"ACME{index:018d}",
+                status="delivered" if sales_order.status == "completed" else "in_transit",
+                dispatched_at=now - timedelta(days=index % 12),
+                **stamp,
+            )
+            Invoice.objects.create(
+                sales_order=sales_order,
+                invoice_number=f"INV-2026-{index:03d}",
+                status="paid" if sales_order.status == "completed" else "issued",
+                issued_at=today - timedelta(days=index % 12),
+                due_on=today + timedelta(days=30 - index % 10),
+                total_amount=total,
+                **stamp,
+            )
+            InventoryMovement.objects.create(
+                product=product,
+                movement_type="outbound",
+                quantity=-quantity,
+                reference_code=sales_order.code,
+                **stamp,
+            )
 
+        for index, (sales_order, product, quantity, _,) in enumerate(sales_orders, 1):
+            if sales_order.status in {"confirmed", "ready_for_dispatch", "awaiting_stock"}:
+                reservation = StockReservation.objects.create(sales_order=sales_order, **stamp)
+                StockReservationLine.objects.create(
+                    reservation=reservation,
+                    product=product,
+                    quantity_reserved=quantity,
+                    **stamp,
+                )
+
+        for index in range(1, 41):
+            actor = operators[index % len(operators)]
+            Notification.objects.create(
+                recipient=actor,
+                title=["Receipt ready for QC", "Low stock review", "Dispatch update", "New purchase order"][index % 4],
+                message=f"Workflow update {index}: review the latest operational activity in Acme Operations.",
+                level=["info", "success", "warning", "info"][index % 4],
+                category=["receiving", "inventory", "fulfillment", "procurement"][index % 4],
+                is_read=index % 5 == 0,
+                **stamp,
+            )
+            ActivityEvent.objects.create(
+                actor=actor,
+                event_type=["purchase_order.created", "receipt.logged", "quality.updated", "shipment.dispatched"][index % 4],
+                message=f"{actor.full_name} completed workflow event {index}.",
+                target_model="PurchaseOrder" if index % 2 else "SalesOrder",
+                target_id=(index % 30) + 1,
+                metadata={"seeded": True, "sequence": index},
+                **stamp,
+            )
+
+        self.stdout.write(self.style.SUCCESS("Seeded 30 suppliers, 30 customers, 30 products, 30 purchase orders, 30 sales orders, and related workflow records."))
