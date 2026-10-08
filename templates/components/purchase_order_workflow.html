@@ -1,63 +1,36 @@
-<article class="panel workflow-diagram-panel">
-    <div class="panel-head">
+<article class="workflow-infographic">
+    <div class="workflow-infographic-header">
         <div>
             <p class="eyebrow">Workflow map</p>
             <h3>Purchase order workflow</h3>
+            <p>Move inbound stock from order creation through receiving, quality review, and release.</p>
         </div>
         <a href="{% url 'operations:purchase_order_list' %}" class="btn-secondary">View purchase orders</a>
     </div>
-    <p class="workflow-diagram-intro">Move inbound stock from order creation through receiving, quality review, and stock release.</p>
-    <div class="mermaid workflow-mermaid" aria-label="Purchase order workflow diagram">
-        graph TD
-            subgraph rowOne["Start the workflow"]
-                direction LR
-                start(["Start Workflow"])
-                open["Open Purchase Orders"]
-                select[/Select Supplier Items/]
-                start --> open --> select
-            end
-
-            subgraph rowTwo["Validate and submit"]
-                direction LR
-                validate{"Validate Order Data"}
-                correct["Correct Order Details"]
-                submit["Submit Purchase Order"]
-                validate -->|"Yes"| submit
-                validate -->|"No"| correct
-                correct --> select
-            end
-
-            subgraph rowThree["Receive and inspect"]
-                direction LR
-                receive[/Record Goods Receipt/]
-                inspect["Inspect Received Lot"]
-                approve{"Approve Quality"}
-                receive --> inspect --> approve
-            end
-
-            subgraph rowFour["Release or reject"]
-                direction LR
-                release["Release Available Stock"]
-                reject["Reject Or Rework Lot"]
-                finish(["Complete Workflow"])
-                release --> finish
-                reject --> finish
-            end
-
-            select --> validate
-            submit --> receive
-            approve -->|"Yes"| release
-            approve -->|"No"| reject
-
-            classDef primary fill:#3B82F6,stroke:#1E40AF,color:#FFFFFF,stroke-width:2px;
-            classDef success fill:#22C55E,stroke:#15803D,color:#FFFFFF,stroke-width:2px;
-            classDef error fill:#EF4444,stroke:#B91C1C,color:#FFFFFF,stroke-width:2px;
-            classDef neutral fill:#E2E8F0,stroke:#0F172A,color:#475569,stroke-width:2px;
-            classDef canvas fill:#F8FAFC,stroke:#0F172A,color:#0F172A,stroke-width:1px;
-
-            class start,finish success;
-            class open,submit,inspect,release primary;
-            class correct,reject error;
-            class select,receive,validate,approve neutral;
+    <div class="workflow-step-grid" aria-label="Eight-step purchase order workflow">
+        <a class="workflow-step-card" href="{% url 'operations:purchase_order_list' %}">
+            <span class="workflow-icon">◎</span><span class="workflow-step-number">Step 1</span><strong>Open Orders</strong>
+        </a>
+        <a class="workflow-step-card" href="{% url 'operations:purchase_order_create' %}">
+            <span class="workflow-icon">＋</span><span class="workflow-step-number">Step 2</span><strong>Select Supplier</strong>
+        </a>
+        <a class="workflow-step-card" href="{% url 'operations:purchase_order_create' %}">
+            <span class="workflow-icon">▤</span><span class="workflow-step-number">Step 3</span><strong>Add Order Items</strong>
+        </a>
+        <a class="workflow-step-card" href="{% url 'operations:purchase_order_create' %}">
+            <span class="workflow-icon">✓</span><span class="workflow-step-number">Step 4</span><strong>Validate Order</strong>
+        </a>
+        <a class="workflow-step-card" href="{% url 'operations:purchase_order_create' %}">
+            <span class="workflow-icon">↗</span><span class="workflow-step-number">Step 5</span><strong>Submit Purchase Order</strong>
+        </a>
+        <a class="workflow-step-card" href="{% url 'operations:purchase_order_list' %}">
+            <span class="workflow-icon">□</span><span class="workflow-step-number">Step 6</span><strong>Record Goods Receipt</strong>
+        </a>
+        <a class="workflow-step-card" href="{% url 'operations:quality_queue' %}">
+            <span class="workflow-icon">⌕</span><span class="workflow-step-number">Step 7</span><strong>Inspect Received Lot</strong>
+        </a>
+        <a class="workflow-step-card workflow-step-card-success" href="{% url 'operations:quality_queue' %}">
+            <span class="workflow-icon">✓</span><span class="workflow-step-number">Step 8</span><strong>Release Available Stock</strong>
+        </a>
     </div>
 </article>

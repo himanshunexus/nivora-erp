@@ -81,30 +81,3 @@
 
 </section>
 {% endblock %}
-
-{% block extra_head %}
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    mermaid.initialize({
-        startOnLoad: true,
-        theme: "base",
-        flowchart: {
-            curve: "stepBefore",
-            htmlLabels: true,
-            nodeSpacing: 28,
-            rankSpacing: 44,
-            useMaxWidth: true
-        },
-        themeVariables: {
-            background: "#F8FAFC",
-            primaryTextColor: "#0F172A",
-            lineColor: "#0F172A",
-            clusterBkg: "#F8FAFC",
-            clusterBorder: "#CBD5E1"
-        }
-    });
-</script>
-{% endblock %}

@@ -4,7 +4,6 @@
 
 {% block extra_head %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -98,25 +97,6 @@
 
 {% block extra_js %}
 <script>
-    mermaid.initialize({
-        startOnLoad: true,
-        theme: "base",
-        flowchart: {
-            curve: "stepBefore",
-            htmlLabels: true,
-            nodeSpacing: 28,
-            rankSpacing: 44,
-            useMaxWidth: true
-        },
-        themeVariables: {
-            background: "#F8FAFC",
-            primaryTextColor: "#0F172A",
-            lineColor: "#0F172A",
-            clusterBkg: "#F8FAFC",
-            clusterBorder: "#CBD5E1"
-        }
-    });
-
     const labels = {{ chart_labels|safe }};
     const poSeries = {{ purchase_order_series|safe }};
     const soSeries = {{ sales_order_series|safe }};
