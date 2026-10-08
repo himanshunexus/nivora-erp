@@ -16,6 +16,8 @@
         </div>
     </div>
 
+    {% include 'components/purchase_order_workflow.html' %}
+
     <div class="metric-grid metric-grid-tight">
         {% include 'components/metric_card.html' with label='Pending QC' value=pending_quality_count hint='Lots waiting for inspection' %}
         {% include 'components/metric_card.html' with label='Unread alerts' value=unread_count hint='Notifications scoped to your role' %}
@@ -77,22 +79,32 @@
         </article>
     </div>
 
-    <article class="panel">
-        <div class="panel-head">
-            <div>
-                <p class="eyebrow">Workflow map</p>
-                <h3>How data moves</h3>
-            </div>
-        </div>
-        <div class="workflow-rail">
-            <div class="workflow-step">Supplier onboarding</div>
-            <div class="workflow-step">Purchase order</div>
-            <div class="workflow-step">Goods receipt</div>
-            <div class="workflow-step">Quality inspection</div>
-            <div class="workflow-step">Live stock</div>
-            <div class="workflow-step">Sales order</div>
-            <div class="workflow-step">Dispatch + invoice</div>
-        </div>
-    </article>
 </section>
+{% endblock %}
+
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        flowchart: {
+            curve: "stepBefore",
+            htmlLabels: true,
+            nodeSpacing: 28,
+            rankSpacing: 44,
+            useMaxWidth: true
+        },
+        themeVariables: {
+            background: "#F8FAFC",
+            primaryTextColor: "#0F172A",
+            lineColor: "#0F172A",
+            clusterBkg: "#F8FAFC",
+            clusterBorder: "#CBD5E1"
+        }
+    });
+</script>
 {% endblock %}
